@@ -47,6 +47,7 @@ class BoardTest(unittest2.TestCase):
             self.test_board.place_move(move)
 
         winning_move = Move(0, 4, PlayerType.CIRCLE)
+        self.test_board.place_move(winning_move)
 
         self.assertTrue(self.test_board.is_winning_move(winning_move))
 
@@ -56,15 +57,27 @@ class BoardTest(unittest2.TestCase):
             self.test_board.place_move(move)
 
         winning_move = Move(4, 0, PlayerType.CIRCLE)
+        self.test_board.place_move(winning_move)
 
         self.assertTrue(self.test_board.is_winning_move(winning_move))
 
-    def test_is_winning_move_diagonal(self):
+    def test_is_winning_move_diagonal_trivial(self):
         test_moves = [Move(i, i, PlayerType.CIRCLE) for i in range(4)]
         for move in test_moves:
             self.test_board.place_move(move)
 
         winning_move = Move(4, 4, PlayerType.CIRCLE)
+        self.test_board.place_move(winning_move)
+
+        self.assertTrue(self.test_board.is_winning_move(winning_move))
+
+    def test_is_winning_move_diagonal_complex(self):
+        test_moves = [Move(x, y, PlayerType.CIRCLE) for x, y in [(5, 5), (7, 3), (8, 2), (9, 1)]]
+        for move in test_moves:
+            self.test_board.place_move(move)
+
+        winning_move = Move(6, 4, PlayerType.CIRCLE)
+        self.test_board.place_move(winning_move)
 
         self.assertTrue(self.test_board.is_winning_move(winning_move))
 
@@ -78,6 +91,7 @@ class BoardTest(unittest2.TestCase):
             self.test_board.place_move(move)
 
         winning_move = Move(2, 0, PlayerType.CIRCLE)
+        self.test_board.place_move(winning_move)
 
         self.assertTrue(self.test_board.is_winning_move(winning_move))
 
@@ -91,6 +105,7 @@ class BoardTest(unittest2.TestCase):
             self.test_board.place_move(move)
 
         winning_move = Move(0, 2, PlayerType.CIRCLE)
+        self.test_board.place_move(winning_move)
 
         self.assertTrue(self.test_board.is_winning_move(winning_move))
 
@@ -104,11 +119,14 @@ class BoardTest(unittest2.TestCase):
             self.test_board.place_move(move)
 
         winning_move = Move(2, 2, PlayerType.CIRCLE)
+        self.test_board.place_move(winning_move)
 
         self.assertTrue(self.test_board.is_winning_move(winning_move))
 
     def test_is_not_winning_move(self):
         not_winning_move = Move(2, 2, PlayerType.CIRCLE)
+
+        self.test_board.place_move(not_winning_move)
 
         self.assertFalse(self.test_board.is_winning_move(not_winning_move))
 
