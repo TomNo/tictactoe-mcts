@@ -53,7 +53,8 @@ class Board:
         if move.x >= self.width or move.x < 0\
                 or move.y < 0 or move.y >= self.height:
             raise InvalidMoveException(
-                "Attempting move:{} beyond the board boarders: {}")
+                "Attempting move:{} beyond the board boarders: {}, {}"
+                    .format(move, move.x, move.y))
 
         if self._board[move.x][move.y] != self.EMPTY_FIELD_VALUE:
             raise InvalidMoveException(

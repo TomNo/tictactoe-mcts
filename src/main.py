@@ -12,11 +12,17 @@ def start_game():
 
     while True:
         move = input("Type new move for player {}:".format(game.player_move))
-        x, y = move.split(",")
 
-        game.move(int(x), int(y))
-        print("Game status:")
-        print(game.board)
+        try:
+            x, y = move.split(",")
+            game.move(int(x), int(y))
+            print("Game status:")
+            print(game.board)
+        except Exception as err:
+            print("Oops error:")
+            print(err)
+            print("Try again")
+            continue
 
         if game.is_finished:
             print("Player {} won.".format(game.winning_player))
