@@ -3,7 +3,7 @@
 __author__ = 'Tomas Novacik'
 
 
-from board import PlayerType, Board
+from board import PlayerType, Board, Move
 
 
 class GameException(Exception):
@@ -21,26 +21,33 @@ class Game(object):
     def __init__(self):
         self._board = None
         self.is_finished = None
-        self.player_move = None
+        self._player_move = None
         self.winning_player = None
 
     def _set_next_player_move(self):
-        if self.player_move == PlayerType.CIRCLE:
-            self.player_move = PlayerType.CROSS
+        if self._player_move == PlayerType.CIRCLE:
+            self._player_move = PlayerType.CROSS
         else:
-            self.player_move = PlayerType.CIRCLE
+            self._player_move = PlayerType.CIRCLE
+
+    @property
+    def player_move(self):
+        return self._player_move
+
+    @property
+    def board(self):
+        return self._board
 
     def start(self):
         self._board = Board()
         self.is_finished = False
-        self.player_move = PlayerType.CIRCLE
+        self._player_move = PlayerType.CIRCLE
 
-    def move(self, move):
+    def move(self, x, y):
         if self.is_finished:
             raise GameAlreadyFinishedException()
 
-        if move.player_type != self.player_move:
-            raise InvalidPlayerMoveException()
+        move = Move(x, y, self._player_move)
 
         self._board.place_move(move)
 

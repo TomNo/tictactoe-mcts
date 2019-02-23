@@ -15,12 +15,12 @@ class BoardTest(unittest2.TestCase):
     def test_placing_circle_move(self):
         self.test_board.place_move(Move(0, 0, PlayerType.CIRCLE))
 
-        assert(self.test_board.board[0][0] == PlayerType.CIRCLE)
+        assert(self.test_board.get_field(0, 0) == PlayerType.CIRCLE)
 
     def test_placing_cross_move(self):
         self.test_board.place_move(Move(0, 0, PlayerType.CROSS))
 
-        assert(self.test_board.board[0][0] == PlayerType.CROSS)
+        assert(self.test_board.get_field(0, 0) == PlayerType.CROSS)
 
     def test_placing_invalid_cross_move(self):
         self.test_board.place_move(Move(0, 0, PlayerType.CROSS))

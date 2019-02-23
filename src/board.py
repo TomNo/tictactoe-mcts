@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import enum
+import pprint
 
 __author__ = 'Tomas Novacik'
 
@@ -10,8 +11,9 @@ class InvalidMoveException(Exception):
 
 class PlayerType(enum.Enum):
     """Player type identifikation"""
-    CROSS = 1
-    CIRCLE = 2
+    CROSS = 'X'
+    CIRCLE = 'O'
+
 
 class Move:
     """Move representation"""
@@ -26,11 +28,12 @@ class Move:
 
 class Board:
     """Board representation"""
+
     # constants
     DEFAULT_WIDTH = 10
     DEFAULT_HEIGHT = 10
     DEFAULT_WINNING_MOVE_COUNT = 5
-    EMPTY_FIELD_VALUE = 0
+    EMPTY_FIELD_VALUE = '_'
     # private methods
 
     def __init__(self, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
@@ -41,7 +44,8 @@ class Board:
         self._board = [[self.EMPTY_FIELD_VALUE] * width for _ in range(height)]
 
     def __str__(self):
-        return "Board(width = {}, height = {})".format(self.width, self.height)
+        return "Board(width = {}, height = {})\n{}"\
+            .format(self.width, self.height, pprint.pformat(self._board))
 
     # public methods
 
@@ -56,11 +60,18 @@ class Board:
                 "Attempting move {} but field is already occupied by: {}"
                     .format(move, self._board[move.x][move.y]))
 
-        self._board[move.x][move.y] = move.player_type
+        self._board[move.x][move.y] = move.player_type.value
 
     @property
     def board(self):
         return self._board
+
+    def get_field(self, x, y):
+        return PlayerType(self.board[x][y])
+
+
+    def _is_partially_winning(self, x, y, move):
+        return self.board[x][y] == move.player_type.value
 
     def _is_horizontal_winning_move(self, move):
         left_border = max(0, move.x - self.winning_move_count)
@@ -69,7 +80,7 @@ class Board:
         succ_count = 0
 
         for i in range(left_border, right_border):
-            if self.board[i][move.y] == move.player_type:
+            if self._is_partially_winning(i, move.y, move):
                 succ_count += 1
             else:
                 succ_count = 0
@@ -86,7 +97,7 @@ class Board:
         succ_count = 0
 
         for i in range(down_border, top_border):
-            if self.board[move.x][i] == move.player_type:
+            if self._is_partially_winning(move.x, i, move):
                 succ_count += 1
             else:
                 succ_count = 0
@@ -113,7 +124,7 @@ class Board:
         succ_count = 0
 
         for x, y in zip(x_cords, y_cords):
-            if self.board[x][y] == move.player_type:
+            if self._is_partially_winning(x, y, move):
                 succ_count += 1
             else:
                 succ_count = 0
@@ -127,7 +138,7 @@ class Board:
         succ_count = 0
 
         for x, y in zip(x_cords, y_cords):
-            if self.board[x][y] == move.player_type:
+            if self._is_partially_winning(x, y, move):
                 succ_count += 1
             else:
                 succ_count = 0
@@ -142,8 +153,6 @@ class Board:
         return self._is_horizontal_winning_move(move) or\
                self._is_vertical_winning_move(move) or\
                 self._is_diagonal_winning_move(move)
-
-
 
 
 # eof
