@@ -4,6 +4,7 @@ from board import BoardSpec
 __author__ = 'Tomas Novacik'
 
 import argparse
+import logging
 
 from game import Game
 from utc import UTC
@@ -52,6 +53,9 @@ def main():
                     action="store_true", default = False)
 
     args = parser.parse_args()
+
+    logging.getLogger().setLevel(logging.DEBUG)
+
     start_game(args.with_bot)
 
 if __name__ == "__main__":

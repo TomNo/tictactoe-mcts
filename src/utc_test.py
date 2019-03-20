@@ -44,4 +44,14 @@ class UtcTest(unittest2.TestCase):
 
         assert move == (2, 2)
 
+    def test_ucb_computation(self):
+        board_spec = BoardSpec(3, 3, 3)
+        game = Game(board_spec = board_spec)
+        game.start()
+
+        utc = UTC(iteration_limit=20)
+        move = utc.get_move(game)
+
+        assert move == (0, 1)
+
 # eof

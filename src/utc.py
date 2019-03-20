@@ -77,16 +77,20 @@ class UTC:
         return [n.move for n in nodes]
 
     def _selection(self, root_node: UTCNode) -> UTCNodes:
+        logging.debug("Selecting new node to expand.")
         total_n = root_node.n
 
         actual_node = root_node
 
-        top_nodes = []
+        top_nodes = [actual_node]
 
         top_ucb1 = -math.inf
         top_node = actual_node
 
         while True:
+            if actual_node.is_expandable:
+                break
+
             for n in actual_node.children:
                 # TODO w/n could be computed in backprop phase
                 ucb1 = n.w / n.n + math.sqrt(math.log(total_n) / n.n) * self.DEFAULT_C
@@ -94,16 +98,17 @@ class UTC:
                     top_ucb1 = ucb1
                     top_node = n
 
+            if top_nodes[-1] == top_node:
+                break
+
             top_nodes.append(top_node)
 
-            if top_node.is_expandable:
-                break
-            else:
-                actual_node = top_node
+            actual_node = top_node
 
         return top_nodes
 
     def _playout(self, game: Game):
+        logging.debug("Starting playout game.")
         moves_played = 0
 
         new_game = game.clone()
@@ -119,8 +124,8 @@ class UTC:
         return new_game
 
     def _expand(self, node: UTCNode, game: Game):
+        logging.debug("Expanding node.")
         # TODO what if node is not expandable
-        # TODO what if winning move
         new_move = random.choice(game.available_moves)
         if game.player_move == PlayerType.CROSS:
             player_move = PlayerType.CIRCLE
@@ -138,7 +143,7 @@ class UTC:
                                game.winning_player,
                                new_move)
 
-        if len(game.available_moves) <= 1:
+        if  len(node.children) > len(game.available_moves):
             node.is_expandable = False
         return new_node
 
@@ -165,9 +170,11 @@ class UTC:
             new_game =self._playout(actual_game)
             self.backprop(nodes + [new_node], new_game)
             iter_count += 1
+            logging.debug("Finish iteration num. {}".format(iter_count))
 
-        logging.info("Simulation took:{}", time.time() - start_time)
-        logging.info("Simulation took: {} iterations", iter_count)
+        logging.debug("Simulation finished.")
+        logging.debug("It took:{}", time.time() - start_time)
+        logging.debug("It took: {} iterations", iter_count)
 
     def _get_winning_move(self, root_node: UTCNode) -> BoardCoord:
         """
@@ -201,6 +208,7 @@ class UTC:
 
     @staticmethod
     def backprop(nodes: UTCNodes, game):
+        logging.debug("Backpropagating stats.")
         for node in nodes:
             node.n += 1
 
