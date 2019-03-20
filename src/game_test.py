@@ -25,4 +25,7 @@ class GameTest(unittest2.TestCase):
 
         self.assertTrue(game.is_finished)
 
+    def test_clone(self):
+        game = Game()
+        game.clone()
 # eof

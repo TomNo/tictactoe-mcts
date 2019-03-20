@@ -2,18 +2,21 @@
 
 import enum
 import pprint
+from typing import Tuple, Optional, List
 
 __author__ = 'Tomas Novacik'
 
+BoardCoord = Tuple[int, int]
+BoardCoordList = List[BoardCoord]
 
 class InvalidMoveException(Exception):
     pass
 
+
 class PlayerType(enum.Enum):
-    """Player type identifikation"""
+    """Player type identification"""
     CROSS = 'X'
     CIRCLE = 'O'
-
 
 class Move:
     """Move representation"""
@@ -26,6 +29,7 @@ class Move:
         return "Move(x = {}, y = {}, player_type = {})"\
             .format(self.x, self.y, self.player_type)
 
+
 class Board:
     """Board representation"""
 
@@ -36,12 +40,15 @@ class Board:
     EMPTY_FIELD_VALUE = '_'
     # private methods
 
-    def __init__(self, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
-                 winning_move_count = DEFAULT_WINNING_MOVE_COUNT):
+    def __init__(self, width: int = DEFAULT_WIDTH, height: int = DEFAULT_HEIGHT,
+                 winning_move_count:int = DEFAULT_WINNING_MOVE_COUNT,
+                 board: List[List[str]] = None,
+                 available_moves: Optional[BoardCoordList] = None):
         self.width = width
         self.height = height
         self.winning_move_count = winning_move_count
-        self._board = [[self.EMPTY_FIELD_VALUE] * width for _ in range(height)]
+        self._board = board or [[self.EMPTY_FIELD_VALUE] * width for _ in range(height)]
+        self.available_moves = available_moves or [(x, y) for x in range(width) for y in range(height)]
 
     def __str__(self):
         return "Board(width = {}, height = {})\n{}"\
@@ -49,7 +56,7 @@ class Board:
 
     # public methods
 
-    def place_move(self, move):
+    def place_move(self, move: Move):
         if move.x >= self.width or move.x < 0\
                 or move.y < 0 or move.y >= self.height:
             raise InvalidMoveException(
@@ -62,19 +69,19 @@ class Board:
                     .format(move, self._board[move.x][move.y]))
 
         self._board[move.x][move.y] = move.player_type.value
+        self.available_moves.remove((move.x, move.y))
 
     @property
-    def board(self):
+    def board(self) -> []:
         return self._board
 
-    def get_field(self, x, y):
+    def get_field(self, x:int, y:int) -> PlayerType:
         return PlayerType(self.board[x][y])
 
-
-    def _is_partially_winning(self, x, y, move):
+    def _is_partially_winning(self, x: int, y: int, move: Move) -> bool:
         return self.board[x][y] == move.player_type.value
 
-    def _is_horizontal_winning_move(self, move):
+    def _is_horizontal_winning_move(self, move: Move) -> bool:
         left_border = max(0, move.x - self.winning_move_count)
         right_border = min(self.width, move.x + self.winning_move_count)
 
@@ -91,7 +98,7 @@ class Board:
 
         return False
 
-    def _is_vertical_winning_move(self, move):
+    def _is_vertical_winning_move(self, move: Move) -> bool:
         top_border = min(self.height, move.y + self.winning_move_count)
         down_border = max(move.y - self.height, 0)
 
@@ -108,7 +115,7 @@ class Board:
 
         return False
 
-    def _is_diagonal_winning_move(self, move):
+    def _is_diagonal_winning_move(self, move: Move) -> bool:
         max_x_shift_left = max(0, move.x - self.winning_move_count + 1)
         max_y_shift_down = max(0, move.y - self.winning_move_count + 1)
         max_x_shift_right = min(self.width - 1, move.x + self.winning_move_count - 1)
@@ -149,11 +156,17 @@ class Board:
 
         return False
 
-    def is_winning_move(self, move):
+    def is_winning_move(self, move: Move) -> bool:
         # TODO not checking move borders issue?
         return self._is_horizontal_winning_move(move) or\
                self._is_vertical_winning_move(move) or\
                 self._is_diagonal_winning_move(move)
 
+    def clone(self):
+        new_board = None if self.board is None else [row[:] for row in self.board]
+        new_available_moves = self.available_moves.copy()
+
+        return Board(self.width, self.height, self.winning_move_count,
+                     new_board, new_available_moves)
 
 # eof

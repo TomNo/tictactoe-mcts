@@ -18,11 +18,12 @@ class GameAlreadyFinishedException(GameException):
 class Game(object):
     """Governing game mechanism """
 
-    def __init__(self):
-        self._board = None
-        self.is_finished = None
-        self._player_move = None
-        self.winning_player = None
+    def __init__(self, board = None, is_finished = None, player_move = None,
+                 winning_player = None):
+        self._board = board
+        self.is_finished = is_finished
+        self._player_move = player_move
+        self.winning_player = winning_player
 
     def _set_next_player_move(self):
         if self._player_move == PlayerType.CIRCLE:
@@ -54,6 +55,17 @@ class Game(object):
         if self._board.is_winning_move(move):
             self.is_finished = True
             self.winning_player = move.player_type
+        elif len(self._board.available_moves) == 0:
+            self.is_finished = True # draw
+            self.winning_player = None
         else:
             self._set_next_player_move()
+
+    @property
+    def available_moves(self):
+        return self.board.available_moves
+
+    def clone(self):
+        return Game(self._board.clone(), self.is_finished, self._player_move,
+                    self.winning_player)
 # eof
