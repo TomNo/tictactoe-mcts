@@ -3,27 +3,35 @@
 __author__ = 'Tomas Novacik'
 
 
-from board import PlayerType, Board, Move
+from board import PlayerType, Board, Move, BoardSpec
+from typing import Optional
 
 
 class GameException(Exception):
     pass
 
+
 class InvalidPlayerMoveException(GameException):
     pass
+
 
 class GameAlreadyFinishedException(GameException):
     pass
 
+
 class Game(object):
     """Governing game mechanism """
 
-    def __init__(self, board = None, is_finished = None, player_move = None,
-                 winning_player = None):
+    def __init__(self, board:Optional[Board] = None,
+                 is_finished:Optional[bool] = None,
+                 player_move:Optional[PlayerType] = None,
+                 winning_player:Optional[PlayerType] = None,
+                board_spec:Optional[BoardSpec] = None):
         self._board = board
         self.is_finished = is_finished
         self._player_move = player_move
         self.winning_player = winning_player
+        self._board_spec = board_spec
 
     def _set_next_player_move(self):
         if self._player_move == PlayerType.CIRCLE:
@@ -40,7 +48,7 @@ class Game(object):
         return self._board
 
     def start(self):
-        self._board = Board()
+        self._board = Board(self._board_spec)
         self.is_finished = False
         self._player_move = PlayerType.CIRCLE
 

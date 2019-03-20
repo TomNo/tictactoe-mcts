@@ -2,7 +2,7 @@
 
 import unittest2
 
-from board import PlayerType, Move, Board, InvalidMoveException
+from board import PlayerType, Move, Board, InvalidMoveException, BoardSpec
 
 __author__ = 'Tomas Novacik'
 
@@ -10,7 +10,8 @@ __author__ = 'Tomas Novacik'
 class BoardTest(unittest2.TestCase):
 
     def setUp(self):
-        self.test_board = Board(10, 10, 5)
+        board_spec = BoardSpec(10, 10, 5)
+        self.test_board = Board(board_spec)
 
     def test_placing_circle_move(self):
         self.test_board.place_move(Move(0, 0, PlayerType.CIRCLE))

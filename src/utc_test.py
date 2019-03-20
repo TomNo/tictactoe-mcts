@@ -2,16 +2,14 @@
 
 import unittest2
 import random
-
+from board import BoardSpec
 from utc import UTC
 from game import Game
-from game import PlayerType
 
 __author__ = 'Tomas Novacik'
 
 
 class UtcTest(unittest2.TestCase):
-
 
     def setUp(self):
         random.seed(1)
@@ -24,5 +22,26 @@ class UtcTest(unittest2.TestCase):
         move = utc.get_move(game)
 
         assert move == (1, 7)
+
+    def test_finding_last_move(self):
+        board_spec = BoardSpec(3, 3, 3)
+        game = Game(board_spec = board_spec)
+        game.start()
+
+        game.move(1, 0)
+        game.move(0, 0)
+
+        game.move(2, 1)
+        game.move(1, 1)
+
+        game.move(0, 1)
+        game.move(2, 0)
+
+        game.move(1, 2)
+
+        utc = UTC(iteration_limit=100)
+        move = utc.get_move(game)
+
+        assert move == (2, 2)
 
 # eof

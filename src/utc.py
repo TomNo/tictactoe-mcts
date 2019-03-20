@@ -16,6 +16,13 @@ from board import BoardCoord
 UTCNodes = List["UTCNode"]
 Moves = List[Move]
 
+class GameFinished(Exception):
+
+    def __init__(self, msg, winning_player, winning_move):
+        super().__init__(msg)
+        self.winning_player = winning_player
+        self.winning_move = winning_move
+
 
 class UTCNode:
 
@@ -44,7 +51,7 @@ class UTC:
 
     DEFAULT_C = 1.4
     DEFAULT_PLAYOUT_MAX_DEPTH = 100 # maximum search limit
-    DEFAULT_TIME_LIMIT = 30 # secs
+    DEFAULT_TIME_LIMIT = 10 # secs
 
     def __init__(self, time_limit: float = DEFAULT_TIME_LIMIT,
                  max_depth: int = DEFAULT_PLAYOUT_MAX_DEPTH,
@@ -123,6 +130,14 @@ class UTC:
         new_node = UTCNode(new_move, [], player_move)
         node.add_child(new_node)
         game.move(*new_move)
+        # check if game is finished for either player
+        # not checking edge cases in which there are not more moves
+        if game.is_finished:
+            raise GameFinished("Game is finished: {}(winning player)"
+                               .format(game.winning_player),
+                               game.winning_player,
+                               new_move)
+
         if len(game.available_moves) <= 1:
             node.is_expandable = False
         return new_node
@@ -176,9 +191,13 @@ class UTC:
     def get_move(self, game: Game) -> BoardCoord:
         root_node = UTCNode(None, [], game.player_move)
 
-        self._simulation(root_node, game.clone())
-
-        return self._get_winning_move(root_node)
+        try:
+            self._simulation(root_node, game.clone())
+        except GameFinished as e:
+            # TODO try again when other player wins
+            return e.winning_move
+        else:
+            return self._get_winning_move(root_node)
 
     @staticmethod
     def backprop(nodes: UTCNodes, game):

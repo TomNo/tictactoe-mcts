@@ -2,7 +2,7 @@
 
 import enum
 import pprint
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional, List, NamedTuple
 
 __author__ = 'Tomas Novacik'
 
@@ -30,6 +30,9 @@ class Move:
             .format(self.x, self.y, self.player_type)
 
 
+BoardSpec = NamedTuple("BoardSpec",
+                       [("width", int), ("height", int), ("winning_count", int)])
+
 class Board:
     """Board representation"""
 
@@ -40,19 +43,26 @@ class Board:
     EMPTY_FIELD_VALUE = '_'
     # private methods
 
-    def __init__(self, width: int = DEFAULT_WIDTH, height: int = DEFAULT_HEIGHT,
-                 winning_move_count:int = DEFAULT_WINNING_MOVE_COUNT,
+    def __init__(self, spec:Optional[BoardSpec] = None,
                  board: List[List[str]] = None,
                  available_moves: Optional[BoardCoordList] = None):
-        self.width = width
-        self.height = height
-        self.winning_move_count = winning_move_count
-        self._board = board or [[self.EMPTY_FIELD_VALUE] * width for _ in range(height)]
-        self.available_moves = available_moves or [(x, y) for x in range(width) for y in range(height)]
+        self.spec = spec
+        if spec:
+            self.width = spec.width
+            self.height = spec.height
+            self.winning_move_count = spec.winning_count
+        else:
+            self.width = self.DEFAULT_WIDTH
+            self.height = self.DEFAULT_HEIGHT
+            self.winning_move_count = self.DEFAULT_WINNING_MOVE_COUNT
+
+        self._board = board or [[self.EMPTY_FIELD_VALUE] * self.width for _ in range(self.height)]
+        self.available_moves = available_moves or [(x, y) for x in range(self.width) for y in range(self.height)]
 
     def __str__(self):
         return "Board(width = {}, height = {})\n{}"\
-            .format(self.width, self.height, pprint.pformat(self._board))
+            .format(self.width, self.height,
+                    "\n".join([pprint.pformat(row) for row in self._board]))
 
     # public methods
 
@@ -166,7 +176,6 @@ class Board:
         new_board = None if self.board is None else [row[:] for row in self.board]
         new_available_moves = self.available_moves.copy()
 
-        return Board(self.width, self.height, self.winning_move_count,
-                     new_board, new_available_moves)
+        return Board(self.spec, new_board, new_available_moves)
 
 # eof

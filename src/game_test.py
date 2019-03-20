@@ -27,5 +27,7 @@ class GameTest(unittest2.TestCase):
 
     def test_clone(self):
         game = Game()
+        game.start()
+
         game.clone()
 # eof
