@@ -16,12 +16,14 @@ from board import BoardCoord
 UTCNodes = List["UTCNode"]
 Moves = List[Move]
 
-class GameFinished(Exception):
 
-    def __init__(self, msg, winning_player, winning_move):
-        super().__init__(msg)
-        self.winning_player = winning_player
+class WinningMoveFound(Exception):
+    def __init__(self, winning_move: BoardCoord):
         self.winning_move = winning_move
+
+
+class SearchFinished(Exception):
+    pass
 
 
 class UTCNode:
@@ -84,22 +86,27 @@ class UTC:
 
         top_nodes = [actual_node]
 
-        top_ucb1 = -math.inf
         top_node = actual_node
+
+        previous_node = None
 
         while True:
             if actual_node.is_expandable:
                 break
 
+            # local minimum encountered - end the search
+            if actual_node == previous_node:
+                raise SearchFinished()
+
+            previous_node = actual_node
+
+            top_ucb1 = -math.inf
             for n in actual_node.children:
                 # TODO w/n could be computed in backprop phase
                 ucb1 = n.w / n.n + math.sqrt(math.log(total_n) / n.n) * self.DEFAULT_C
                 if ucb1 > top_ucb1:
                     top_ucb1 = ucb1
                     top_node = n
-
-            if top_nodes[-1] == top_node:
-                break
 
             top_nodes.append(top_node)
 
@@ -125,26 +132,27 @@ class UTC:
 
     def _expand(self, node: UTCNode, game: Game):
         logging.debug("Expanding node.")
-        # TODO what if node is not expandable
-        new_move = random.choice(game.available_moves)
-        if game.player_move == PlayerType.CROSS:
-            player_move = PlayerType.CIRCLE
-        else:
-            player_move = PlayerType.CROSS
 
-        new_node = UTCNode(new_move, [], player_move)
-        node.add_child(new_node)
+        assert game.available_moves, "There should be always avail. moves"
+        assert not game.is_finished, "Game should not be finished"
+
+        used_moves = set([c.move for c in node.children])
+
+        aval_moves = set(game.available_moves) - used_moves
+
+        new_move = random.choice(list(aval_moves))
+
+        new_node = UTCNode(new_move, [], game.player_move)
+
         game.move(*new_move)
-        # check if game is finished for either player
-        # not checking edge cases in which there are not more moves
-        if game.is_finished:
-            raise GameFinished("Game is finished: {}(winning player)"
-                               .format(game.winning_player),
-                               game.winning_player,
-                               new_move)
+        node.add_child(new_node)
 
-        if  len(node.children) > len(game.available_moves):
+        if game.is_finished:
+            new_node.is_expandable = False
+
+        if len(aval_moves) == 1:
             node.is_expandable = False
+
         return new_node
 
     def _is_simulation_end(self, start_time: float, iter_count: int):
@@ -156,7 +164,6 @@ class UTC:
         return time.time() - start_time >= self._time_limit
 
     def _simulation(self, root_node: UTCNode, game: Game):
-        # TODO winning move found must stop the simulation
         iter_count = 0
         start_time = time.time()
 
@@ -165,16 +172,23 @@ class UTC:
             actual_game = game.clone() # TODO to much cloning
             for m in self._get_move_history(nodes[1:]):
                 actual_game.move(*m)
+
             new_node = self._expand(nodes[-1], actual_game)
-            # TODO raise exception with winning move
+
+            # check if it is forced win
+            if (len(nodes) == 1 and
+                actual_game.is_finished and
+                game.player_move == actual_game.winning_player):
+                raise WinningMoveFound(new_node.move)
+
             new_game =self._playout(actual_game)
             self.backprop(nodes + [new_node], new_game)
             iter_count += 1
             logging.debug("Finish iteration num. {}".format(iter_count))
 
         logging.debug("Simulation finished.")
-        logging.debug("It took:{}", time.time() - start_time)
-        logging.debug("It took: {} iterations", iter_count)
+        logging.debug("It took:{}".format(time.time() - start_time))
+        logging.debug("It took: {} iterations".format(iter_count))
 
     def _get_winning_move(self, root_node: UTCNode) -> BoardCoord:
         """
@@ -196,15 +210,21 @@ class UTC:
         return top_node.move
 
     def get_move(self, game: Game) -> BoardCoord:
-        root_node = UTCNode(None, [], game.player_move)
+        if game.player_move == PlayerType.CIRCLE:
+            player_move = PlayerType.CROSS
+        else:
+            player_move = PlayerType.CIRCLE
+
+        root_node = UTCNode(None, [], player_move)
 
         try:
             self._simulation(root_node, game.clone())
-        except GameFinished as e:
-            # TODO try again when other player wins
+        except WinningMoveFound as e:
             return e.winning_move
-        else:
-            return self._get_winning_move(root_node)
+        except SearchFinished as e:
+            logging.debug("Searching finished.")
+
+        return self._get_winning_move(root_node)
 
     @staticmethod
     def backprop(nodes: UTCNodes, game):

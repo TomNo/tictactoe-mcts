@@ -7,6 +7,21 @@ from board import PlayerType, Move, Board, InvalidMoveException, BoardSpec
 __author__ = 'Tomas Novacik'
 
 
+class SmallBoardTest(unittest2.TestCase):
+    def setUp(self):
+        board_spec = BoardSpec(3, 3, 3)
+        self.test_board = Board(board_spec)
+
+    def test_diagonal_win(self):
+        self.test_board.place_move(Move(2, 0, PlayerType.CIRCLE))
+        self.test_board.place_move(Move(1, 1, PlayerType.CIRCLE))
+
+        win_move = Move(0, 2, PlayerType.CIRCLE)
+        self.test_board.place_move(win_move)
+
+        assert self.test_board.is_winning_move(win_move) == True
+
+
 class BoardTest(unittest2.TestCase):
 
     def setUp(self):

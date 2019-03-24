@@ -151,7 +151,7 @@ class Board:
                 return True
 
         x_cords = range(move.x - max_left_top, move.x + max_right_down + 1)
-        y_cords = range(move.y + max_left_top, move.y - max_left_down - 1, -1)
+        y_cords = range(move.y + max_left_top, move.y - max_right_down - 1, -1)
 
         succ_count = 0
 

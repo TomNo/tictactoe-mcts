@@ -21,7 +21,7 @@ class UtcTest(unittest2.TestCase):
         utc = UTC(iteration_limit=100)
         move = utc.get_move(game)
 
-        assert move == (1, 7)
+        assert move == (6, 7)
 
     def test_finding_last_move(self):
         board_spec = BoardSpec(3, 3, 3)
@@ -42,7 +42,7 @@ class UtcTest(unittest2.TestCase):
         utc = UTC(iteration_limit=100)
         move = utc.get_move(game)
 
-        assert move == (2, 2)
+        assert move == (0, 2)
 
     def test_ucb_computation(self):
         board_spec = BoardSpec(3, 3, 3)
@@ -52,6 +52,6 @@ class UtcTest(unittest2.TestCase):
         utc = UTC(iteration_limit=20)
         move = utc.get_move(game)
 
-        assert move == (0, 1)
+        assert move == (0, 2)
 
 # eof

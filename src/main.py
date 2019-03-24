@@ -13,9 +13,9 @@ from utc import UTC
 def start_game(with_bot):
     utc = None
     if with_bot:
-        utc = UTC()
+        utc = UTC(10)
 
-    game = Game(board_spec=BoardSpec(3, 3, 3))
+    game = Game(board_spec=BoardSpec(10, 10, 5))
 
     game.start()
 
